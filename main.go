@@ -1,23 +1,39 @@
 package main
 
 import (
-	"flag"
+	"context"
+	"hotel-reservation/db"
 	"hotel-reservation/handeler"
+	"log"
+
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-var portAddr string
+const dbUri = "mongodb://localhost:27017"
 
-func init() {
-	flag.StringVar(&portAddr, "port", ":8080", "port address")
-	flag.Parse()
+var config = fiber.Config{
+	ErrorHandler: func(c *fiber.Ctx, err error) error {
+		return c.JSON(
+			map[string]string{"error": err.Error()},
+		)
+	},
 }
 
 func main() {
 
-	app := fiber.New()
-	app.Get("/user", handeler.HandleGetUsers)
-	app.Listen(portAddr)
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(dbUri))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	userStore := db.NewMongoUserStore(client)
+	userHandler := handeler.NewUserHandler(userStore)
+
+	app := fiber.New(config)
+	app.Get("/user/:id", userHandler.HandleGetUser)
+	app.Listen(":8080")
 
 }

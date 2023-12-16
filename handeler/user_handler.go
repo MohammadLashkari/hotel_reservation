@@ -1,19 +1,34 @@
 package handeler
 
 import (
-	"hotel-reservation/models"
+	"context"
+	"hotel-reservation/db"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func HandleGetUsers(c *fiber.Ctx) error {
-	u := models.User{
-		FirstName: "ali",
-		LastName:  "lashkari",
-	}
-	return c.JSON(u)
+type UserHandler struct {
+	db.UserStore
 }
 
-func HandleGetUser(c *fiber.Ctx) error {
-	return c.JSON("user1")
+func NewUserHandler(userStore db.UserStore) *UserHandler {
+	return &UserHandler{
+		UserStore: userStore,
+	}
+}
+
+func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
+	var (
+		id  = c.Params("id")
+		ctx = context.Background()
+	)
+	user, err := h.GetUserById(ctx, id)
+	if err != nil {
+		return err
+	}
+	return c.JSON(user)
+}
+
+func HandleGetUsers(c *fiber.Ctx) error {
+	return c.JSON("")
 }
