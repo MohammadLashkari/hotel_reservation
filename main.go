@@ -6,10 +6,9 @@ import (
 	"hotel-reservation/handeler"
 	"log"
 
+	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-
-	"github.com/gofiber/fiber/v2"
 )
 
 const dbUri = "mongodb://localhost:27017"
@@ -34,6 +33,9 @@ func main() {
 
 	app := fiber.New(config)
 	app.Get("/user/:id", userHandler.HandleGetUser)
+	app.Get("/users", userHandler.HandleGetUsers)
+	app.Post("/user", userHandler.HandlePostUser)
+	app.Delete("/user/:id", userHandler.HandleDeleteUser)
 	app.Listen(":8080")
 
 }
