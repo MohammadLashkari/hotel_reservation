@@ -18,11 +18,11 @@ type Dropper interface {
 
 type UserStore interface {
 	Dropper
-	GetUserById(context.Context, string) (*models.User, error)
-	GetUsers(context.Context) ([]*models.User, error)
-	InsertUser(context.Context, *models.User) (*models.User, error)
-	DeleteUser(context.Context, string) error
-	UpdateUser(context.Context, bson.M, models.UpdateUserPrams) error
+	GetById(context.Context, string) (*models.User, error)
+	GetAll(context.Context) ([]*models.User, error)
+	Insert(context.Context, *models.User) (*models.User, error)
+	Delete(context.Context, string) error
+	Update(context.Context, bson.M, models.UpdateUserPrams) error
 }
 
 type MongoUserStore struct {
@@ -30,14 +30,14 @@ type MongoUserStore struct {
 	collection *mongo.Collection
 }
 
-func NewMongoUserStore(client *mongo.Client, dbName string) *MongoUserStore {
+func NewMongoUserStore(client *mongo.Client) *MongoUserStore {
 	return &MongoUserStore{
 		client:     client,
-		collection: client.Database(dbName).Collection(userColl),
+		collection: client.Database(DBNAME).Collection(userColl),
 	}
 }
 
-func (s *MongoUserStore) GetUserById(ctx context.Context, id string) (*models.User, error) {
+func (s *MongoUserStore) GetById(ctx context.Context, id string) (*models.User, error) {
 	objecId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func (s *MongoUserStore) GetUserById(ctx context.Context, id string) (*models.Us
 	return &user, nil
 }
 
-func (s *MongoUserStore) GetUsers(ctx context.Context) ([]*models.User, error) {
+func (s *MongoUserStore) GetAll(ctx context.Context) ([]*models.User, error) {
 	cur, err := s.collection.Find(ctx, bson.M{})
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (s *MongoUserStore) GetUsers(ctx context.Context) ([]*models.User, error) {
 	return users, nil
 }
 
-func (s *MongoUserStore) InsertUser(ctx context.Context, user *models.User) (*models.User, error) {
+func (s *MongoUserStore) Insert(ctx context.Context, user *models.User) (*models.User, error) {
 	res, err := s.collection.InsertOne(ctx, user)
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func (s *MongoUserStore) InsertUser(ctx context.Context, user *models.User) (*mo
 	return user, nil
 }
 
-func (s *MongoUserStore) DeleteUser(ctx context.Context, id string) error {
+func (s *MongoUserStore) Delete(ctx context.Context, id string) error {
 	objecId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
@@ -83,7 +83,7 @@ func (s *MongoUserStore) DeleteUser(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *MongoUserStore) UpdateUser(ctx context.Context, filter bson.M, params models.UpdateUserPrams) error {
+func (s *MongoUserStore) Update(ctx context.Context, filter bson.M, params models.UpdateUserPrams) error {
 	update := bson.M{"$set": params.ToBson()}
 	_, err := s.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
