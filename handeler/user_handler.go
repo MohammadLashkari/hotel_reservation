@@ -6,6 +6,8 @@ import (
 	"hotel-reservation/models"
 
 	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -40,7 +42,7 @@ func (h *UserHandler) HandleGetUsers(c *fiber.Ctx) error {
 }
 
 func (h *UserHandler) HandlePostUser(c *fiber.Ctx) error {
-	var params models.UserPrams
+	var params models.InsertUserPrams
 	if err := c.BodyParser(&params); err != nil {
 		return err
 	}
@@ -67,9 +69,20 @@ func (h *UserHandler) HandleDeleteUser(c *fiber.Ctx) error {
 }
 
 func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error {
-	id := c.Params("id")
-	if err := h.DeleteUser(c.Context(), id); err != nil {
+	var (
+		params models.UpdateUserPrams
+		id     = c.Params("id")
+	)
+	objecId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
 		return err
 	}
-	return c.JSON(map[string]string{"deleted": id})
+	if err := c.BodyParser(&params); err != nil {
+		return nil
+	}
+	filter := bson.M{"_id": objecId}
+	if err := h.UpdateUser(c.Context(), filter, params); err != nil {
+		return err
+	}
+	return c.JSON(map[string]string{"updated": id})
 }

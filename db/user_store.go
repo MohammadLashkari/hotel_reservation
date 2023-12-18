@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"hotel-reservation/models"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -11,11 +12,17 @@ import (
 
 const userColl = "users"
 
+type Dropper interface {
+	Drop(context.Context) error
+}
+
 type UserStore interface {
+	Dropper
 	GetUserById(context.Context, string) (*models.User, error)
 	GetUsers(context.Context) ([]*models.User, error)
 	InsertUser(context.Context, *models.User) (*models.User, error)
 	DeleteUser(context.Context, string) error
+	UpdateUser(context.Context, bson.M, models.UpdateUserPrams) error
 }
 
 type MongoUserStore struct {
@@ -23,10 +30,10 @@ type MongoUserStore struct {
 	collection *mongo.Collection
 }
 
-func NewMongoUserStore(client *mongo.Client) *MongoUserStore {
+func NewMongoUserStore(client *mongo.Client, dbName string) *MongoUserStore {
 	return &MongoUserStore{
 		client:     client,
-		collection: client.Database(DBNAME).Collection(userColl),
+		collection: client.Database(dbName).Collection(userColl),
 	}
 }
 
@@ -74,4 +81,18 @@ func (s *MongoUserStore) DeleteUser(ctx context.Context, id string) error {
 		return err
 	}
 	return nil
+}
+
+func (s *MongoUserStore) UpdateUser(ctx context.Context, filter bson.M, params models.UpdateUserPrams) error {
+	update := bson.M{"$set": params.ToBson()}
+	_, err := s.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *MongoUserStore) Drop(ctx context.Context) error {
+	fmt.Println("---droping")
+	return s.collection.Drop(ctx)
 }
