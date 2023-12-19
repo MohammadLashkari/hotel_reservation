@@ -11,7 +11,7 @@ import (
 
 func main() {
 
-	client := db.Init()
+	client := db.InitMongo()
 	ctx := context.Background()
 	client.Database(db.DBNAME).Drop(ctx)
 
@@ -25,16 +25,16 @@ func main() {
 	}
 	rooms := []models.Room{
 		{
-			Type:      models.DeluxeRoom,
-			BasePrice: 189.9,
+			Type:  models.DeluxeRoom,
+			Price: 189.9,
 		},
 		{
-			Type:      models.SingleRoom,
-			BasePrice: 99.9,
+			Type:  models.SingleRoom,
+			Price: 99.9,
 		},
 		{
-			Type:      models.SeaSideRoom,
-			BasePrice: 120.0,
+			Type:  models.SeaSideRoom,
+			Price: 120.0,
 		},
 	}
 	insertedHotel, err := hotelStore.Insert(ctx, &hotel)

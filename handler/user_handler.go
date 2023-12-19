@@ -12,18 +12,18 @@ import (
 )
 
 type UserHandler struct {
-	db.UserStore
+	*db.Store
 }
 
-func NewUserHandler(userStore db.UserStore) *UserHandler {
+func NewUserHandler(store *db.Store) *UserHandler {
 	return &UserHandler{
-		UserStore: userStore,
+		Store: store,
 	}
 }
 
 func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 	id := c.Params("id")
-	user, err := h.GetById(c.Context(), id)
+	user, err := h.UserStore.GetById(c.Context(), id)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return c.JSON(map[string]string{"error": "not found"})
@@ -34,7 +34,7 @@ func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 }
 
 func (h *UserHandler) HandleGetUsers(c *fiber.Ctx) error {
-	users, err := h.GetAll(c.Context(), nil)
+	users, err := h.UserStore.GetAll(c.Context(), nil)
 	if err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func (h *UserHandler) HandlePostUser(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	insertedUser, err := h.Insert(c.Context(), user)
+	insertedUser, err := h.UserStore.Insert(c.Context(), user)
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error {
 		return nil
 	}
 	filter := bson.M{"_id": objecId}
-	if err := h.Update(c.Context(), filter, params); err != nil {
+	if err := h.UserStore.Update(c.Context(), filter, params); err != nil {
 		return err
 	}
 	return c.JSON(map[string]string{"updated": id})

@@ -11,14 +11,12 @@ import (
 )
 
 type HotelHandler struct {
-	db.HotelStore
-	db.RoomStore
+	*db.Store
 }
 
-func NewHotelHandler(hs db.HotelStore, rs db.RoomStore) *HotelHandler {
+func NewHotelHandler(store *db.Store) *HotelHandler {
 	return &HotelHandler{
-		HotelStore: hs,
-		RoomStore:  rs,
+		Store: store,
 	}
 }
 

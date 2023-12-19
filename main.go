@@ -17,16 +17,21 @@ var config = fiber.Config{
 
 func main() {
 
-	client := db.Init()
+	client := db.InitMongo()
 	app := fiber.New(config)
 
 	var (
 		userStore   = db.NewMongoUserStore(client)
 		hotelStrore = db.NewMongoHotelStore(client)
 		roomStrore  = db.NewMongoRoomStore(client, hotelStrore)
+		store       = &db.Store{
+			RoomStore:  roomStrore,
+			HotelStore: hotelStrore,
+			UserStore:  userStore,
+		}
 		// handlers
-		userHandler  = handler.NewUserHandler(userStore)
-		hotelHandler = handler.NewHotelHandler(hotelStrore, roomStrore)
+		userHandler  = handler.NewUserHandler(store)
+		hotelHandler = handler.NewHotelHandler(store)
 	)
 
 	// user
