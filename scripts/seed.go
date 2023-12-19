@@ -5,37 +5,44 @@ import (
 	"fmt"
 	"hotel-reservation/db"
 	"hotel-reservation/models"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func main() {
 
 	client := db.Init()
+	ctx := context.Background()
+	client.Database(db.DBNAME).Drop(ctx)
 
 	hotelStore := db.NewMongoHotelStore(client)
 	roomStore := db.NewMongoRoomStore(client, hotelStore)
 	hotel := models.Hotel{
 		Name:     "gho",
 		Location: "kerman",
+		Rating:   4,
+		Rooms:    []primitive.ObjectID{},
 	}
-	room := models.Room{
-		Type:      models.SingleRoom,
-		BasePrice: 99.9,
+	rooms := []models.Room{
+		{
+			Type:      models.DeluxeRoom,
+			BasePrice: 189.9,
+		},
+		{
+			Type:      models.SingleRoom,
+			BasePrice: 99.9,
+		},
+		{
+			Type:      models.SeaSideRoom,
+			BasePrice: 120.0,
+		},
 	}
-	insertedHotel, err := hotelStore.Insert(
-		context.Background(),
-		&hotel,
-	)
+	insertedHotel, err := hotelStore.Insert(ctx, &hotel)
 	if err != nil {
 		fmt.Println(err)
 	}
-	room.HotelId = insertedHotel.Id
-	insertedRoom, err := roomStore.InsertRoom(
-		context.Background(),
-		&room,
-	)
-	if err != nil {
-		fmt.Println(err)
+	for _, room := range rooms {
+		room.HotelId = insertedHotel.Id
+		roomStore.Insert(ctx, &room)
 	}
-	fmt.Println(insertedHotel)
-	fmt.Println(insertedRoom)
 }

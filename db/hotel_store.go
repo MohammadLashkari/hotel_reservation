@@ -13,6 +13,8 @@ const hotelColl = "hotels"
 
 type HotelStore interface {
 	Insert(context.Context, *models.Hotel) (*models.Hotel, error)
+	GetAll(context.Context, bson.M) ([]*models.Hotel, error)
+	GetById(context.Context, string) (*models.Hotel, error)
 	Update(context.Context, bson.M, bson.M) error
 }
 
@@ -26,6 +28,33 @@ func NewMongoHotelStore(client *mongo.Client) *MongoHotelStore {
 		client:     client,
 		collection: client.Database(DBNAME).Collection(hotelColl),
 	}
+}
+
+func (s *MongoHotelStore) GetAll(ctx context.Context, filter bson.M) ([]*models.Hotel, error) {
+	res, err := s.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	var hotels []*models.Hotel
+	if err := res.All(ctx, &hotels); err != nil {
+		return nil, err
+	}
+	return hotels, nil
+}
+
+func (s *MongoHotelStore) GetById(ctx context.Context, id string) (*models.Hotel, error) {
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+	var (
+		hotel      models.Hotel
+		filterById = bson.M{"_id": objectId}
+	)
+	if err := s.collection.FindOne(ctx, filterById).Decode(&hotel); err != nil {
+		return nil, err
+	}
+	return &hotel, nil
 }
 
 func (s *MongoHotelStore) Insert(ctx context.Context, hotel *models.Hotel) (*models.Hotel, error) {

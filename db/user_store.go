@@ -19,7 +19,7 @@ type Dropper interface {
 type UserStore interface {
 	Dropper
 	GetById(context.Context, string) (*models.User, error)
-	GetAll(context.Context) ([]*models.User, error)
+	GetAll(context.Context, bson.M) ([]*models.User, error)
 	Insert(context.Context, *models.User) (*models.User, error)
 	Delete(context.Context, string) error
 	Update(context.Context, bson.M, models.UpdateUserPrams) error
@@ -38,19 +38,22 @@ func NewMongoUserStore(client *mongo.Client) *MongoUserStore {
 }
 
 func (s *MongoUserStore) GetById(ctx context.Context, id string) (*models.User, error) {
-	objecId, err := primitive.ObjectIDFromHex(id)
+	objectId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
 	}
-	var user models.User
-	if err := s.collection.FindOne(ctx, bson.M{"_id": objecId}).Decode(&user); err != nil {
+	var (
+		user       models.User
+		filterById = bson.M{"_id": objectId}
+	)
+	if err := s.collection.FindOne(ctx, filterById).Decode(&user); err != nil {
 		return nil, err
 	}
 	return &user, nil
 }
 
-func (s *MongoUserStore) GetAll(ctx context.Context) ([]*models.User, error) {
-	cur, err := s.collection.Find(ctx, bson.M{})
+func (s *MongoUserStore) GetAll(ctx context.Context, filter bson.M) ([]*models.User, error) {
+	cur, err := s.collection.Find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}

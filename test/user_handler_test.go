@@ -1,9 +1,10 @@
-package handeler
+package test
 
 import (
 	"context"
 	"fmt"
 	"hotel-reservation/db"
+	"hotel-reservation/handler"
 	"log"
 	"net/http/httptest"
 	"testing"
@@ -38,7 +39,7 @@ func TestPost(t *testing.T) {
 	defer tdb.tearDown(t)
 
 	app := fiber.New()
-	userHandler := NewUserHandler(tdb.UserStore)
+	userHandler := handler.NewUserHandler(tdb.UserStore)
 	app.Post("/", userHandler.HandlePostUser)
 	req := httptest.NewRequest("POST", "/", nil)
 	req.Header.Add("Content-Type", "application/json")

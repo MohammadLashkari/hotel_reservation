@@ -1,4 +1,4 @@
-package handeler
+package handler
 
 import (
 	"errors"
@@ -34,7 +34,7 @@ func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 }
 
 func (h *UserHandler) HandleGetUsers(c *fiber.Ctx) error {
-	users, err := h.GetAll(c.Context())
+	users, err := h.GetAll(c.Context(), nil)
 	if err != nil {
 		return err
 	}
