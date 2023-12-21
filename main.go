@@ -1,10 +1,13 @@
 package main
 
 import (
+	"fmt"
+	"hotel-reservation/api"
+	"hotel-reservation/api/middleware"
 	"hotel-reservation/db"
-	"hotel-reservation/handler"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 )
 
 var config = fiber.Config{
@@ -16,7 +19,11 @@ var config = fiber.Config{
 }
 
 func main() {
-
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file")
+		return
+	}
 	client := db.InitMongo()
 	app := fiber.New(config)
 
@@ -30,20 +37,24 @@ func main() {
 			UserStore:  userStore,
 		}
 		// handlers
-		userHandler  = handler.NewUserHandler(store)
-		hotelHandler = handler.NewHotelHandler(store)
+		userHandler  = api.NewUserHandler(store)
+		hotelHandler = api.NewHotelHandler(store)
+		authHandler  = api.NewAuthHandler(store)
+		auth         = app.Group("/api")
+		api          = app.Group("/api/v1", middleware.JWTAuthenticaion)
 	)
 
+	//auth
+	auth.Post("/auth", authHandler.HandleAuth)
 	// user
-	app.Get("/user/:id", userHandler.HandleGetUser)
-	app.Get("/user", userHandler.HandleGetUsers)
-	app.Post("/user", userHandler.HandlePostUser)
-	app.Put("/user/:id", userHandler.HandlePutUser)
-	app.Delete("/user/:id", userHandler.HandleDeleteUser)
+	api.Get("/user/:id", userHandler.HandleGetUser)
+	api.Get("/user", userHandler.HandleGetUsers)
+	api.Post("/user", userHandler.HandlePostUser)
+	api.Put("/user/:id", userHandler.HandlePutUser)
+	api.Delete("/user/:id", userHandler.HandleDeleteUser)
 	// hotel
-	app.Get("/hotel", hotelHandler.HandleGetHotels)
-	app.Get("/hotel/:id", hotelHandler.HandleGetHotel)
-	app.Get("/hotel/:id/rooms", hotelHandler.HandleGetHotelRooms)
+	api.Get("/hotel", hotelHandler.HandleGetHotels)
+	api.Get("/hotel/:id", hotelHandler.HandleGetHotel)
+	api.Get("/hotel/:id/rooms", hotelHandler.HandleGetHotelRooms)
 	app.Listen(":8080")
-
 }

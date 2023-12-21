@@ -75,13 +75,17 @@ func (p InsertUserPrams) Validate() map[string]string {
 		errors["password"] =
 			fmt.Sprintf("password should be at least %d characters", minPasswordLen)
 	}
-	if !isEmailValid(p.Email) {
+	if !IsEmailValid(p.Email) {
 		errors["email"] = "invalid email"
 	}
 	return errors
 }
 
-func isEmailValid(email string) bool {
+func IsEmailValid(email string) bool {
 	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
 	return emailRegex.MatchString(email)
+}
+
+func IsPasswordValid(encPass, pass string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(encPass), []byte(pass)) == nil
 }
