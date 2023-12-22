@@ -18,6 +18,7 @@ type Store struct {
 	UserStore
 	HotelStore
 	RoomStore
+	BookingStore
 }
 
 func InitMongo() *mongo.Client {

@@ -12,8 +12,9 @@ import (
 const roomColl = "rooms"
 
 type RoomStore interface {
-	Insert(context.Context, *models.Room) (*models.Room, error)
 	GetAll(context.Context, bson.M) ([]*models.Room, error)
+	GetById(context.Context, string) (*models.Room, error)
+	Insert(context.Context, *models.Room) (*models.Room, error)
 }
 
 type MongoRoomStore struct {
@@ -39,6 +40,21 @@ func (s *MongoRoomStore) GetAll(ctx context.Context, filter bson.M) ([]*models.R
 		return nil, err
 	}
 	return rooms, nil
+}
+
+func (s *MongoRoomStore) GetById(ctx context.Context, id string) (*models.Room, error) {
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+	var (
+		room       models.Room
+		filterById = bson.M{"_id": objectId}
+	)
+	if err := s.collection.FindOne(ctx, filterById).Decode(&room); err != nil {
+		return nil, err
+	}
+	return &room, nil
 }
 
 func (s *MongoRoomStore) Insert(ctx context.Context, room *models.Room) (*models.Room, error) {
