@@ -39,12 +39,13 @@ func main() {
 			BookingStore: bookingStrore,
 		}
 		// handlers
-		userHandler  = api.NewUserHandler(store)
-		hotelHandler = api.NewHotelHandler(store)
-		roomHandler  = api.NewRoomHandler(store)
-		authHandler  = api.NewAuthHandler(store)
-		auth         = app.Group("/api")
-		api          = app.Group("/api/v1", middleware.JWTAuthenticaion(userStore))
+		userHandler    = api.NewUserHandler(store)
+		hotelHandler   = api.NewHotelHandler(store)
+		roomHandler    = api.NewRoomHandler(store)
+		authHandler    = api.NewAuthHandler(store)
+		bookingHandler = api.NewBookingHandler(store)
+		auth           = app.Group("/api")
+		api            = app.Group("/api/v1", middleware.JWTAuthenticaion(userStore))
 	)
 
 	//auth
@@ -59,8 +60,11 @@ func main() {
 	api.Get("/hotel", hotelHandler.HandleGetHotels)
 	api.Get("/hotel/:id", hotelHandler.HandleGetHotel)
 	api.Get("/hotel/:id/rooms", hotelHandler.HandleGetHotelRooms)
-	// boo
-	api.Get("/room", roomHandler.HandleBookedRooms)
-	api.Post("/room/:id/book", roomHandler.HandleBookRoom)
+	// room
+	api.Get("/room", roomHandler.HandleGetRooms)
+	// booking
+	api.Post("/book/:id", bookingHandler.HandleBookRoom)
+	api.Post("/booking/:id", bookingHandler.HandleGetBookings)
+	api.Post("/booking", bookingHandler.HandleGetBooking)
 	app.Listen(":8080")
 }

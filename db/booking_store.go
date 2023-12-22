@@ -12,7 +12,8 @@ import (
 const bookingColl = "booking"
 
 type BookingStore interface {
-	GetAll(context.Context) ([]*models.Booking, error)
+	GetAll(context.Context, bson.M) ([]*models.Booking, error)
+	GetById(context.Context, string) (*models.Booking, error)
 	Insert(context.Context, *models.Booking) (*models.Booking, error)
 }
 
@@ -28,8 +29,8 @@ func NewMongoBookingStore(client *mongo.Client) *MongoBookingStore {
 	}
 }
 
-func (s *MongoBookingStore) GetAll(ctx context.Context) ([]*models.Booking, error) {
-	res, err := s.collection.Find(ctx, bson.M{})
+func (s *MongoBookingStore) GetAll(ctx context.Context, filter bson.M) ([]*models.Booking, error) {
+	res, err := s.collection.Find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -38,6 +39,21 @@ func (s *MongoBookingStore) GetAll(ctx context.Context) ([]*models.Booking, erro
 		return nil, err
 	}
 	return bookedRooms, nil
+}
+
+func (s *MongoBookingStore) GetById(ctx context.Context, id string) (*models.Booking, error) {
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+	var (
+		booking    models.Booking
+		filterById = bson.M{"_id": objectId}
+	)
+	if err := s.collection.FindOne(ctx, filterById).Decode(&booking); err != nil {
+		return nil, err
+	}
+	return &booking, nil
 }
 func (s *MongoBookingStore) Insert(ctx context.Context, booking *models.Booking) (*models.Booking, error) {
 	resp, err := s.collection.InsertOne(ctx, booking)
