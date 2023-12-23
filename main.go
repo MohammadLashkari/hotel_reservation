@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"hotel-reservation/api"
-	"hotel-reservation/api/middleware"
 	"hotel-reservation/db"
 
 	"github.com/gofiber/fiber/v2"
@@ -11,11 +10,7 @@ import (
 )
 
 var config = fiber.Config{
-	ErrorHandler: func(c *fiber.Ctx, err error) error {
-		return c.JSON(
-			map[string]string{"error": err.Error()},
-		)
-	},
+	ErrorHandler: api.ErrorHandler,
 }
 
 func main() {
@@ -45,28 +40,28 @@ func main() {
 		authHandler    = api.NewAuthHandler(store)
 		bookingHandler = api.NewBookingHandler(store)
 		auth           = app.Group("/api")
-		api            = app.Group("/api/v1", middleware.JWTAuthenticaion(userStore))
-		admin          = api.Group("/admin", middleware.AdminAuth)
+		apiV1          = app.Group("/api/v1", api.JWTAuthenticaion(userStore))
+		admin          = apiV1.Group("/admin", api.AdminAuth)
 	)
 
 	//auth
 	auth.Post("/auth", authHandler.HandleAuth)
 	// user
-	api.Get("/user/:id", userHandler.HandleGetUser)
-	api.Get("/user", userHandler.HandleGetUsers)
-	api.Post("/user", userHandler.HandlePostUser)
-	api.Put("/user/:id", userHandler.HandlePutUser)
-	api.Delete("/user/:id", userHandler.HandleDeleteUser)
+	apiV1.Get("/user/:id", userHandler.HandleGetUser)
+	apiV1.Get("/user", userHandler.HandleGetUsers)
+	apiV1.Post("/user", userHandler.HandlePostUser)
+	apiV1.Put("/user/:id", userHandler.HandlePutUser)
+	apiV1.Delete("/user/:id", userHandler.HandleDeleteUser)
 	// hotel
-	api.Get("/hotel", hotelHandler.HandleGetHotels)
-	api.Get("/hotel/:id", hotelHandler.HandleGetHotel)
-	api.Get("/hotel/:id/rooms", hotelHandler.HandleGetHotelRooms)
+	apiV1.Get("/hotel", hotelHandler.HandleGetHotels)
+	apiV1.Get("/hotel/:id", hotelHandler.HandleGetHotel)
+	apiV1.Get("/hotel/:id/rooms", hotelHandler.HandleGetHotelRooms)
 	// room
-	api.Get("/room", roomHandler.HandleGetRooms)
+	apiV1.Get("/room", roomHandler.HandleGetRooms)
 	// booking
-	api.Post("/book/:id", bookingHandler.HandleBookRoom)
-	api.Get("/booking/:id", bookingHandler.HandleGetBooking)
-	api.Get("/booking/:id/cancel", bookingHandler.HandleCancelBooking)
+	apiV1.Post("/book/:id", bookingHandler.HandleBookRoom)
+	apiV1.Get("/booking/:id", bookingHandler.HandleGetBooking)
+	apiV1.Get("/booking/:id/cancel", bookingHandler.HandleCancelBooking)
 	// admin
 	admin.Get("/booking", bookingHandler.HandleGetBookings)
 	app.Listen(":8080")

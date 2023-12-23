@@ -26,7 +26,7 @@ func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return c.JSON(map[string]string{"error": "not found"})
 		}
-		return err
+		return ErrInvalidId()
 	}
 	return c.JSON(user)
 }
