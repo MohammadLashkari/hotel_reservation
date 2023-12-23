@@ -23,7 +23,7 @@ type UserStore interface {
 	GetAll(context.Context, bson.M) ([]*models.User, error)
 	Insert(context.Context, *models.User) (*models.User, error)
 	Delete(context.Context, string) error
-	Update(context.Context, bson.M, models.UpdateUserPrams) error
+	Update(context.Context, string, models.UpdateUserPrams) error
 }
 
 type MongoUserStore struct {
@@ -98,9 +98,13 @@ func (s *MongoUserStore) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *MongoUserStore) Update(ctx context.Context, filter bson.M, params models.UpdateUserPrams) error {
-	update := bson.M{"$set": params.ToBson()}
-	_, err := s.collection.UpdateOne(ctx, filter, update)
+func (s *MongoUserStore) Update(ctx context.Context, id string, params models.UpdateUserPrams) error {
+	objecId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	update := bson.M{"$set": params}
+	_, err = s.collection.UpdateByID(ctx, objecId, update)
 	if err != nil {
 		return err
 	}

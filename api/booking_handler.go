@@ -28,14 +28,40 @@ func (h *BookingHandler) HandleGetBookings(c *fiber.Ctx) error {
 	}
 	return c.JSON(booking)
 }
-
 func (h *BookingHandler) HandleGetBooking(c *fiber.Ctx) error {
 	id := c.Params("id")
 	booking, err := h.BookingStore.GetById(c.Context(), id)
 	if err != nil {
 		return err
 	}
+	user, err := getAuthUser(c)
+	if err != nil {
+		return err
+	}
+	if booking.UserId != user.Id {
+		return c.JSON("not allowed")
+	}
 	return c.JSON(booking)
+}
+
+func (h *BookingHandler) HandleCancelBooking(c *fiber.Ctx) error {
+	id := c.Params("id")
+	booking, err := h.BookingStore.GetById(c.Context(), id)
+	if err != nil {
+		return err
+	}
+	user, err := getAuthUser(c)
+	if err != nil {
+		return err
+	}
+	if user.Id != booking.UserId && !user.Admin {
+		return c.JSON("not allowed")
+	}
+	newValue := bson.M{"canceled": true}
+	if err := h.BookingStore.Update(c.Context(), id, newValue); err != nil {
+		return err
+	}
+	return c.JSON("updated")
 }
 
 func (h *BookingHandler) isRoomAvailable(ctx context.Context, roomId primitive.ObjectID, params models.BookRoomParams) (bool, error) {

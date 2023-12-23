@@ -46,6 +46,7 @@ func main() {
 		bookingHandler = api.NewBookingHandler(store)
 		auth           = app.Group("/api")
 		api            = app.Group("/api/v1", middleware.JWTAuthenticaion(userStore))
+		admin          = api.Group("/admin", middleware.AdminAuth)
 	)
 
 	//auth
@@ -64,7 +65,9 @@ func main() {
 	api.Get("/room", roomHandler.HandleGetRooms)
 	// booking
 	api.Post("/book/:id", bookingHandler.HandleBookRoom)
-	api.Post("/booking/:id", bookingHandler.HandleGetBookings)
-	api.Post("/booking", bookingHandler.HandleGetBooking)
+	api.Get("/booking/:id", bookingHandler.HandleGetBooking)
+	api.Get("/booking/:id/cancel", bookingHandler.HandleCancelBooking)
+	// admin
+	admin.Get("/booking", bookingHandler.HandleGetBookings)
 	app.Listen(":8080")
 }

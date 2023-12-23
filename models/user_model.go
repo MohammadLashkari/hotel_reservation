@@ -22,6 +22,7 @@ type User struct {
 	LastName          string             `bson:"lastName" json:"lastName"`
 	Email             string             `bson:"email" json:"email"`
 	EncryptedPassword string             `bson:"EncryptedPassword" json:"-"`
+	Admin             bool               `bson:"admin" json:"admin"`
 }
 
 type InsertUserPrams struct {

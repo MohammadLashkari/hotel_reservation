@@ -15,6 +15,7 @@ type BookingStore interface {
 	GetAll(context.Context, bson.M) ([]*models.Booking, error)
 	GetById(context.Context, string) (*models.Booking, error)
 	Insert(context.Context, *models.Booking) (*models.Booking, error)
+	Update(context.Context, string, bson.M) error
 }
 
 type MongoBookingStore struct {
@@ -39,6 +40,19 @@ func (s *MongoBookingStore) GetAll(ctx context.Context, filter bson.M) ([]*model
 		return nil, err
 	}
 	return bookedRooms, nil
+}
+
+func (s *MongoBookingStore) Update(ctx context.Context, id string, newValue bson.M) error {
+	objecId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	update := bson.M{"$set": newValue}
+	_, err = s.collection.UpdateByID(ctx, objecId, update)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *MongoBookingStore) GetById(ctx context.Context, id string) (*models.Booking, error) {
