@@ -3,9 +3,9 @@ package api
 import (
 	"errors"
 	"fmt"
+	"hotel-reservation/config"
 	"hotel-reservation/db"
 	"hotel-reservation/models"
-	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -67,8 +67,7 @@ func createTokenFromUser(user *models.User) string {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
-	secretKey := os.Getenv("JWT_SECRET_KEY")
-	tokenString, err := token.SignedString([]byte(secretKey))
+	tokenString, err := token.SignedString([]byte(config.Env.JWT_SECRET_KEY))
 	if err != nil {
 		fmt.Println("failed to sign token with secret", err)
 	}

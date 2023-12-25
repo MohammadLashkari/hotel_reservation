@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"hotel-reservation/config"
 	"hotel-reservation/models"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -34,7 +35,7 @@ type MongoUserStore struct {
 func NewMongoUserStore(client *mongo.Client) *MongoUserStore {
 	return &MongoUserStore{
 		client:     client,
-		collection: client.Database(DBNAME).Collection(userColl),
+		collection: client.Database(config.Env.MONGO_DB_NAME).Collection(userColl),
 	}
 }
 
@@ -103,7 +104,7 @@ func (s *MongoUserStore) Update(ctx context.Context, id string, params models.Up
 	if err != nil {
 		return err
 	}
-	update := bson.M{"$set": params}
+	update := bson.M{"$set": params.ToBson()}
 	_, err = s.collection.UpdateByID(ctx, objecId, update)
 	if err != nil {
 		return err

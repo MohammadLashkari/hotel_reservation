@@ -3,8 +3,8 @@ package api
 import (
 	"errors"
 	"fmt"
+	"hotel-reservation/config"
 	"hotel-reservation/db"
-	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -42,8 +42,7 @@ func validateToken(tokenStr string) (jwt.MapClaims, error) {
 			fmt.Println("invalid signing method", t.Header["alg"])
 			return nil, errors.New("unauthorized")
 		}
-		secret := os.Getenv("JWT_SECRET_KEY")
-		return []byte(secret), nil
+		return []byte(config.Env.JWT_SECRET_KEY), nil
 	})
 	if err != nil {
 		fmt.Println("faild to parse JWT token :", err)

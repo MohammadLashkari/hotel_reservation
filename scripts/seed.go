@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"hotel-reservation/config"
 	"hotel-reservation/db"
 	"hotel-reservation/models"
 
@@ -13,7 +14,7 @@ func main() {
 
 	client := db.InitMongo()
 	ctx := context.Background()
-	client.Database(db.DBNAME).Drop(ctx)
+	client.Database(config.Env.MONGO_DB_NAME).Drop(ctx)
 
 	hotelStore := db.NewMongoHotelStore(client)
 	roomStore := db.NewMongoRoomStore(client, hotelStore)

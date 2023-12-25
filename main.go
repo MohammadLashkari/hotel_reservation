@@ -1,26 +1,20 @@
 package main
 
 import (
-	"fmt"
 	"hotel-reservation/api"
+	"hotel-reservation/config"
 	"hotel-reservation/db"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
 )
 
-var config = fiber.Config{
-	ErrorHandler: api.ErrorHandler,
-}
-
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
-		return
-	}
 	client := db.InitMongo()
-	app := fiber.New(config)
+
+	var fiberConfig = fiber.Config{
+		ErrorHandler: api.ErrorHandler,
+	}
+	app := fiber.New(fiberConfig)
 
 	var (
 		userStore     = db.NewMongoUserStore(client)
@@ -64,5 +58,5 @@ func main() {
 	apiV1.Get("/booking/:id/cancel", bookingHandler.HandleCancelBooking)
 	// admin
 	admin.Get("/booking", bookingHandler.HandleGetBookings)
-	app.Listen(":8080")
+	app.Listen(config.Env.HTTP_LISTEN_ADDRESS)
 }
